@@ -804,7 +804,7 @@ fn skimmer_view(
     // Dots are a single bright colour — no SNR shading. The yellow-green
     // gradient was hard to read on marks this small, and the dB figure is
     // already in the label, so the colour carried no useful information.
-    let dot_fill = Color32::from_rgb(205, 110, 75);
+    let dot_fill = Color32::from_rgb(93, 156, 54);
     let dot_outline = Color32::from_rgb(15, 17, 24);
     for ds in tracks.values() {
         // Connecting line along the track, so a frequency change or drift
@@ -822,7 +822,7 @@ fn skimmer_view(
             
                 painter.line_segment(
                     [p0, p1],
-                    egui::Stroke::new(1.5, Color32::from_rgb(200, 206, 220)),
+                    egui::Stroke::new(1.0, Color32::from_rgb(180, 186, 200)),
                 );
             }
         }
