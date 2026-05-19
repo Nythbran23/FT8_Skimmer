@@ -230,7 +230,7 @@ impl App {
             slot_count: 0,
             level: 0.0,
             status: "idle — pick the radio's USB codec input and press Start".into(),
-            view_mode: ViewMode::Classic,
+            view_mode: ViewMode::Skimmer,
             skimmer_wf: SkimmerWaterfall::new(),
             skimmer_slots: 8,
         }
@@ -804,7 +804,7 @@ fn skimmer_view(
     // Dots are a single bright colour — no SNR shading. The yellow-green
     // gradient was hard to read on marks this small, and the dB figure is
     // already in the label, so the colour carried no useful information.
-    let dot_fill = Color32::from_rgb(255, 60, 200);
+    let dot_fill = Color32::from_rgb(205, 110, 75);
     let dot_outline = Color32::from_rgb(15, 17, 24);
     for ds in tracks.values() {
         // Connecting line along the track, so a frequency change or drift
@@ -819,10 +819,7 @@ fn skimmer_view(
             ) {
                 let p0 = egui::pos2(xa, freq_to_y(a.freq_hz));
                 let p1 = egui::pos2(xb, freq_to_y(b.freq_hz));
-                painter.line_segment(
-                    [p0, p1],
-                    egui::Stroke::new(3.0, Color32::from_rgb(15, 17, 24)),
-                );
+            
                 painter.line_segment(
                     [p0, p1],
                     egui::Stroke::new(1.5, Color32::from_rgb(200, 206, 220)),
