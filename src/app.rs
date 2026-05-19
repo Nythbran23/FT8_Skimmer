@@ -801,11 +801,21 @@ fn skimmer_view(
     }
 
     // --- decode dots ------------------------------------------------------
-    // Decodes are drawn as hollow white rings, not filled discs: the signal
-    // shows through, so the mark never competes with the waterfall colour —
-    // no fill hue can clash with the navy-amber colormap. An accumulation
-    // decode gets a second, outer ring.
-    for ds in tracks.values() {
+    // Each decode is a filled neutral-grey dot with a dark rim. Grey has no
+    // hue to clash with the navy-amber colormap; the dark rim keeps the dot
+    // visible on bright signal blobs as well as on the dark noise floor —
+    // contrast against the full tonal range that no single flat colour
+    // could give. An accumulation decode adds a green outer ring (the same
+    // green as the table's `accum` source tag), so the colour appears only
+    // where it carries meaning.
+    //
+    // Iterate tracks in a stable (key-sorted) order: HashMap order is
+    // randomised per frame, which would make overlapping connecting lines
+    // shimmer as their draw order changed.
+    let mut track_order: Vec<&String> = tracks.keys().collect();
+    track_order.sort();
+    for key in track_order {
+        let ds = &tracks[key];
         // Connecting line along the track, so a frequency change or drift
         // reads as a continuous path. Drawn as a dark halo with a lighter
         // core on top, so it stays visible over both the dark noise floor
@@ -864,18 +874,30 @@ fn skimmer_view(
     struct TrackLabel<'a> {
         latest: &'a Decode,
         want_y: f32,
+        /// The track's callsign key — a stable tie-breaker for the sort
+        /// below. Without it, two tracks at the same frequency sort in
+        /// HashMap iteration order, which is randomised every frame, so
+        /// their labels flicker. The key makes placement deterministic.
+        key: &'a str,
     }
     let mut labels: Vec<TrackLabel> = tracks
-        .values()
-        .filter_map(|ds| {
+        .iter()
+        .filter_map(|(key, ds)| {
             ds.last().map(|d| TrackLabel {
                 latest: d,
                 want_y: freq_to_y(d.freq_hz),
+                key: key.as_str(),
             })
         })
         .collect();
-    // Sort by desired y and push apart so text rows do not overlap.
-    labels.sort_by(|a, b| a.want_y.partial_cmp(&b.want_y).unwrap());
+    // Sort by desired y, breaking ties by the track key so the ordering is
+    // identical every frame — equal-frequency labels no longer dither.
+    labels.sort_by(|a, b| {
+        a.want_y
+            .partial_cmp(&b.want_y)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.key.cmp(b.key))
+    });
     let row_h = 14.0_f32;
     let mut placed_y: Vec<f32> = Vec::with_capacity(labels.len());
     let mut last_y = f32::MIN;
