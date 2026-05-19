@@ -801,11 +801,10 @@ fn skimmer_view(
     }
 
     // --- decode dots ------------------------------------------------------
-    // Dots are a single bright colour — no SNR shading. The yellow-green
-    // gradient was hard to read on marks this small, and the dB figure is
-    // already in the label, so the colour carried no useful information.
-    let dot_fill = Color32::from_rgb(93, 156, 54);
-    let dot_outline = Color32::from_rgb(15, 17, 24);
+    // Decodes are drawn as hollow white rings, not filled discs: the signal
+    // shows through, so the mark never competes with the waterfall colour —
+    // no fill hue can clash with the navy-amber colormap. An accumulation
+    // decode gets a second, outer ring.
     for ds in tracks.values() {
         // Connecting line along the track, so a frequency change or drift
         // reads as a continuous path. Drawn as a dark halo with a lighter
@@ -833,15 +832,24 @@ fn skimmer_view(
             let y = freq_to_y(d.freq_hz);
             let accumulated = !matches!(d.source, DecodeSource::SingleShot);
             let r = if accumulated { 4.0 } else { 3.0 };
-            // Dark outline first, so the bright fill pops against any
-            // background — bright blob or dark noise alike.
-            painter.circle_filled(egui::pos2(x, y), r + 1.0, dot_outline);
-            painter.circle_filled(egui::pos2(x, y), r, dot_fill);
+            // Filled neutral-grey dot with a dark rim: the grey has no hue to
+            // clash with the colormap, the rim keeps it visible on bright
+            // signal blobs. An accumulation decode gets an outer ring.
+            painter.circle_filled(
+                egui::pos2(x, y),
+                r + 1.0,
+                Color32::from_rgb(15, 17, 24),
+            );
+            painter.circle_filled(
+                egui::pos2(x, y),
+                r,
+                Color32::from_rgb(165, 170, 178),
+            );
             if accumulated {
                 painter.circle_stroke(
                     egui::pos2(x, y),
                     r + 3.0,
-                    egui::Stroke::new(1.5, Color32::from_rgb(80, 220, 130)),
+                    egui::Stroke::new(1.5, Color32::from_rgb(165, 170, 178)),
                 );
             }
         }
