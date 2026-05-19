@@ -849,7 +849,7 @@ fn skimmer_view(
                 painter.circle_stroke(
                     egui::pos2(x, y),
                     r + 3.0,
-                    egui::Stroke::new(1.5, Color32::from_rgb(165, 170, 178)),
+                    egui::Stroke::new(2.0, Color32::from_rgb(120, 230, 150)),
                 );
             }
         }
