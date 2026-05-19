@@ -1,0 +1,51 @@
+[package]
+name = "ft8mon"
+version = "0.1.0"
+edition = "2021"
+description = "FT8 multi-decode RX monitor — capture, slot framing, waterfall, WAV record"
+default-run = "ft8mon"
+
+[lib]
+name = "ft8mon"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ft8mon"
+path = "src/main.rs"
+
+# One-off maintenance tool: recompute the `periods.decoded` flag in an
+# existing capture database by re-running LDPC on each stored LLR blob.
+# Needs the MSHV shim, so it builds only with --features mshv.
+[[bin]]
+name = "ft8mon-backfill"
+path = "src/bin/backfill.rs"
+required-features = ["mshv"]
+
+[features]
+# GUI is on by default. Build the headless core only with --no-default-features.
+default = ["gui"]
+gui = ["dep:eframe", "dep:egui_extras"]
+# Real FT8 decoder: links MSHV's de-Qt'd ft8b() via the C shim in cpp/.
+# Needs MSHV_SRC set + Qt5/FFTW — see build.rs. Off by default so a plain
+# build needs no MSHV source.
+mshv = []
+
+[dependencies]
+cpal = "0.15"
+rustfft = "6"
+crossbeam-channel = "0.5"
+chrono = "0.4"
+anyhow = "1"
+eframe = { version = "0.29", optional = true }
+egui_extras = { version = "0.29", optional = true }
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+[build-dependencies]
+# Used only when the `mshv` feature is enabled, to compile the MSHV
+# decoder + C shim and locate Qt5/FFTW.
+cc = "1"
+pkg-config = "0.3"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
